@@ -1,0 +1,4 @@
+POSTGRES_USER=gopet_user
+POSTGRES_PASSWORD=gopet_password
+POSTGRES_DB=gopet_db
+HTTP_ADDR=:5050
