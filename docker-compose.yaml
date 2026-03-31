@@ -10,14 +10,14 @@ services:
         - ${PROJECT_ROOT}/out/pgdata:/var/lib/postgresql
     restart: always
   gopet-migrate:
-    container_name: gopet-env-migrate
     image: migrate/migrate:v4.19.1
-    volumes: 
-       -${PROJECT_ROOT}/migrations:/migrations
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+       - ${PROJECT_ROOT}/migrations:/migrations
 
-  gopet-socat:
-    image: alpine/socat:1.8.0.3
-    ports: 
-     - "5432:5432"
-    container_name: gopet-env-socat
-    command: tcp-listen:5432,fork,reuseaddr tcp-connect:gopet-env-postgres:5432
+  # gopet-socat:
+  #   image: alpine/socat:1.8.0.3
+  #   ports: 
+  #    - "5432:5432"
+  #   container_name: gopet-env-socat
+  #   command: tcp-listen:5432,fork,reuseaddr tcp-connect:gopet-env-postgres:5432
