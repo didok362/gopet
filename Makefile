@@ -41,3 +41,8 @@ migrate-action:
 		-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@gopet-postgres:5432/${POSTGRES_DB}?sslmode=disable \
 		"$(action)"
 
+socat-up:
+	@docker compose up -d gopet-socat
+
+socat-down:
+	@docker compose down gopet-socat

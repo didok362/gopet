@@ -6,18 +6,18 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_INITDB_ARGS=-A md5 ## для подключения с виндового pgadmin(УБРАТЬ ПРИ РЕЛИЗЕ)
     volumes: 
         - ${PROJECT_ROOT}/out/pgdata:/var/lib/postgresql
     restart: always
   gopet-migrate:
     image: migrate/migrate:v4.19.1
-    user: "${UID:-1000}:${GID:-1000}"
     volumes:
        - ${PROJECT_ROOT}/migrations:/migrations
+  gopet-socat:
+    image: alpine/socat:1.8.0.3
+    ports: 
+     - "5432:5432"
+    container_name: gopet-env-socat
+    command: tcp-listen:5432,fork,reuseaddr tcp-connect:gopet-env-postgres:5432
 
-  # gopet-socat:
-  #   image: alpine/socat:1.8.0.3
-  #   ports: 
-  #    - "5432:5432"
-  #   container_name: gopet-env-socat
-  #   command: tcp-listen:5432,fork,reuseaddr tcp-connect:gopet-env-postgres:5432
