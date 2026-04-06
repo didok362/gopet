@@ -14,7 +14,7 @@ env-down:
 env-cleanup:
 	@read -p "Clear all volume files [y/n]: " ans; \
 	if [ "$$ans" = "y" ]; then \
-		docker compose down gopet-postgres && \
+		docker compose down gopet-postgres gopet-socat && \
 		sudo rm -rf out/pgdata && \
 		echo "File was cleared"; \
 	else\
