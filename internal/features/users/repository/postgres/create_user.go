@@ -15,7 +15,7 @@ func (r *UsersRepository) CreateUser(
 
 	query := `
 	INSERT INTO gopet.users (full_name, phone_number)
-	VLAUES ($1, $2)
+	VALUES ($1, $2)
 	RETURNING id, version, full_name, phone_number;
 	`
 

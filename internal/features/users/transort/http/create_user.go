@@ -10,7 +10,7 @@ import (
 
 type CreateUserRequset struct {
 	FullName    string  `json:"full_name"    validate:"required,min=3,max=100"`
-	PhoneNumber *string `json:"phone_number" validate:"omitempty,min=10,max=15,starwith=+"`
+	PhoneNumber *string `json:"phone_number" validate:"omitempty,min=10,max=15,startswith=+"`
 }
 
 type CreateUserResponse struct {
@@ -28,15 +28,16 @@ func (h *UsersHTTPHandler) CreateUser(rw http.ResponseWriter, r *http.Request) {
 	log.Debug("invoke CreateUser")
 	var request CreateUserRequset
 	if err := core_http_request.DecodeAndValidateRequest(r, &request); err != nil {
-		responseHandler.ErorrResponse(err, "decode and validate error")
+		responseHandler.ErorrResponse(err, "failed to decode and validate HTTP request")
+		return
 	}
-	rw.WriteHeader(http.StatusOK)
 
 	userDomain := domainFromDTO(request)
 
 	userDomain, err := h.usersService.CreateUser(ctx, userDomain)
 	if err != nil {
 		responseHandler.ErorrResponse(err, "failed to create user")
+		return
 	}
 
 	response := DTOFromDomain(userDomain)
