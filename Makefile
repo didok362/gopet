@@ -5,6 +5,7 @@ export PROJECT_ROOT=$(shell pwd)
 
 
 env-up:
+	@mkdir -p out/pgdata
 	@docker compose up -d gopet-postgres
 
 env-down:
@@ -14,7 +15,7 @@ env-cleanup:
 	@read -p "Clear all volume files [y/n]: " ans; \
 	if [ "$$ans" = "y" ]; then \
 		docker compose down gopet-postgres && \
-		rm -rf out/pgdata && \
+		sudo rm -rf out/pgdata && \
 		echo "File was cleared"; \
 	else\
 		echo "Canceled.";\
@@ -46,3 +47,8 @@ socat-up:
 
 socat-down:
 	@docker compose down gopet-socat
+
+gopet-run:
+	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
+	go mod tidy && \
+	go run cmd/gopet/main.go

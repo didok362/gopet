@@ -7,11 +7,12 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_INITDB_ARGS=-A md5 ## для подключения с виндового pgadmin(УБРАТЬ ПРИ РЕЛИЗЕ)
-    volumes: 
-        - ${PROJECT_ROOT}/out/pgdata:/var/lib/postgresql
+    volumes:
+        - ./out/pgdata:/var/lib/postgresql
     restart: always
   gopet-migrate:
     image: migrate/migrate:v4.19.1
+    user: "${UID:-1000}:${GID:-1000}"
     volumes:
        - ${PROJECT_ROOT}/migrations:/migrations
   gopet-socat:
