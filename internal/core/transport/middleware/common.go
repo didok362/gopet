@@ -81,7 +81,7 @@ func Trace() Middleware {
 			next.ServeHTTP(rw, r)
 
 			log.Debug(
-				"<<< done HTTP equest",
+				"<<< done HTTP request",
 				zap.Int("status_Code", rw.GetStatusCodeOrPanic()),
 				zap.Duration("latency", time.Since(start)),
 			)

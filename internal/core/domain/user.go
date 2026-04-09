@@ -72,3 +72,40 @@ func (u *User) Validate() error {
 
 	return nil
 }
+
+type UserPatch struct {
+	FullName    Nulladble[string]
+	PhoneNumber Nulladble[string]
+}
+
+func (p *UserPatch) Validate() error {
+	if p.FullName.Set && p.FullName.Value == nil {
+		return fmt.Errorf("FullName cant be patched to emtpy: %w", core_errors.ErrInvalidArgumnet)
+	}
+
+	return nil
+}
+
+func (u *User) ApplyPatch(patch UserPatch) error {
+	if err := patch.Validate(); err != nil {
+		return fmt.Errorf("Validate user patch: %w", err)
+	}
+
+	tmp := *u
+
+	if patch.FullName.Set {
+		tmp.FullName = *patch.FullName.Value
+	}
+
+	if patch.PhoneNumber.Set {
+		tmp.PhoneNumber = patch.PhoneNumber.Value
+	}
+
+	if err := tmp.Validate(); err != nil {
+		return fmt.Errorf("validate patched user: %w", err)
+	}
+
+	*u = tmp
+
+	return nil
+}
