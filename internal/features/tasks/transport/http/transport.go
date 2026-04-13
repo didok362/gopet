@@ -1,0 +1,44 @@
+package tasks_transport_http
+
+import (
+	"context"
+	"gopet/internal/core/domain"
+	core_http_server "gopet/internal/core/transport/server"
+	"net/http"
+)
+
+type TasksHTTPHandler struct {
+	tasksService TasksService
+}
+
+type TasksService interface {
+	CreateTask(
+		ctx context.Context,
+		task domain.Task,
+	) (domain.Task, error)
+
+	// GetTasks(
+	// 	ctx context.Context,
+	// 	userID *int,
+	// 	limit *int,
+	// 	offset *int,
+	// ) ([]domain.User, error)
+}
+
+func NewTasksHTTPHandler(
+	tasksService TasksService,
+) *TasksHTTPHandler {
+	return &TasksHTTPHandler{
+		tasksService: tasksService,
+	}
+}
+
+func (h *TasksHTTPHandler) Routes() []core_http_server.Route {
+	return []core_http_server.Route{
+		{
+			Method:  http.MethodPost,
+			Path:    "/tasks",
+			Handler: h.CreateTask,
+		},
+	}
+}

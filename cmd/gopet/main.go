@@ -7,17 +7,27 @@ import (
 	core_postgres_pool "gopet/internal/core/repository/postgres/pool"
 	core_http_middleware "gopet/internal/core/transport/middleware"
 	core_http_server "gopet/internal/core/transport/server"
+	tasks_postgres_repository "gopet/internal/features/tasks/repositroy"
+	tasks_service "gopet/internal/features/tasks/service"
+	tasks_transport_http "gopet/internal/features/tasks/transport/http"
 	users_postgres_repository "gopet/internal/features/users/repository/postgres"
 	users_service "gopet/internal/features/users/service"
 	users_transport_http "gopet/internal/features/users/transort/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"go.uber.org/zap"
 )
 
+var (
+	timeZone = time.UTC
+)
+
 func main() {
+	time.Local = timeZone
+
 	ctx, cancel := signal.NotifyContext(
 		context.Background(),
 		syscall.SIGINT, syscall.SIGTERM,
@@ -30,6 +40,8 @@ func main() {
 		os.Exit(1)
 	}
 	defer logger.Close()
+
+	logger.Debug("app time zone:", zap.Any("zone", timeZone))
 
 	logger.Debug("init postgres pool")
 	pool, err := core_postgres_pool.NewConnectionPool(
@@ -44,8 +56,12 @@ func main() {
 	logger.Debug("init feature", zap.String("feature", "users"))
 	usersRepository := users_postgres_repository.NewUsersRepository(pool)
 	usersService := users_service.NewUsersService(usersRepository)
-
 	usersTransportHTTP := users_transport_http.NewUsersHTTPHandler(usersService)
+
+	logger.Debug("init feature", zap.String("feature", "tasks"))
+	tasksRepository := tasks_postgres_repository.NewTaskRepository(pool)
+	tasksService := tasks_service.NewTaskService(tasksRepository)
+	tasksTransportHTTP := tasks_transport_http.NewTasksHTTPHandler(tasksService)
 
 	logger.Debug("init of http srever")
 	httpServer := core_http_server.NewHTTPServer(
@@ -53,12 +69,14 @@ func main() {
 		logger,
 		core_http_middleware.RequestID(),
 		core_http_middleware.Logger(logger),
-		core_http_middleware.Panic(),
 		core_http_middleware.Trace(),
+		core_http_middleware.Panic(),
 	)
 
 	apiVersionRouter := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
 	apiVersionRouter.RegiseterRoutes(usersTransportHTTP.Routes()...)
+	apiVersionRouter.RegiseterRoutes(tasksTransportHTTP.Routes()...)
+
 	httpServer.RegisterAPIRouters(apiVersionRouter)
 
 	if err := httpServer.Run(ctx); err != nil {
