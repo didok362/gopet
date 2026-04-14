@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	core_config "gopet/internal/core/config"
 	core_logger "gopet/internal/core/logger"
 	core_postgres_pool "gopet/internal/core/repository/postgres/pool"
 	core_http_middleware "gopet/internal/core/transport/middleware"
@@ -21,12 +22,9 @@ import (
 	"go.uber.org/zap"
 )
 
-var (
-	timeZone = time.UTC
-)
-
 func main() {
-	time.Local = timeZone
+	cfg := core_config.NewConfigMust()
+	time.Local = cfg.TimeZone
 
 	ctx, cancel := signal.NotifyContext(
 		context.Background(),
@@ -41,7 +39,7 @@ func main() {
 	}
 	defer logger.Close()
 
-	logger.Debug("app time zone:", zap.Any("zone", timeZone))
+	logger.Debug("app time zone:", zap.Any("zone", time.Local))
 
 	logger.Debug("init postgres pool")
 	pool, err := core_postgres_pool.NewConnectionPool(

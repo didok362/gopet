@@ -53,3 +53,13 @@ gopet-run:
 	export POSTGRES_HOST=localhost && \
 	go mod tidy && \
 	go run cmd/gopet/main.go
+
+logs-cleanup:
+	@read -p "Clear all log files [y/n]: " ans; \
+	if [ "$$ans" = "y" ]; then \
+		docker compose down gopet-postgres gopet-socat && \
+		sudo rm -rf out/logs && \
+		echo "File was cleared"; \
+	else\
+		echo "Canceled.";\
+	fi
