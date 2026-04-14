@@ -1,4 +1,4 @@
-package tasks_srevice
+package tasks_service
 
 import (
 	"context"
