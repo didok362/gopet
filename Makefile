@@ -67,7 +67,7 @@ logs-cleanup:
 gopet-deploy:
 	@docker compose up -d --build gopet
 
-gopet-uddeploy:
+gopet-undeploy:
 	@docker compose down gopet
 
 ps:
