@@ -63,3 +63,9 @@ logs-cleanup:
 	else\
 		echo "Canceled.";\
 	fi
+
+gopet-deploy:
+	@docker compose up -d --build gopet
+
+ps:
+	@docker compose ps
