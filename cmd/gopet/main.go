@@ -8,6 +8,9 @@ import (
 	core_postgres_pool "gopet/internal/core/repository/postgres/pool"
 	core_http_middleware "gopet/internal/core/transport/middleware"
 	core_http_server "gopet/internal/core/transport/server"
+	statistics_postgres_repository "gopet/internal/features/statistics/repository"
+	statistics_service "gopet/internal/features/statistics/service"
+	statistics_transport_http "gopet/internal/features/statistics/transport/http"
 	tasks_postgres_repository "gopet/internal/features/tasks/repositroy"
 	tasks_service "gopet/internal/features/tasks/service"
 	tasks_transport_http "gopet/internal/features/tasks/transport/http"
@@ -61,6 +64,11 @@ func main() {
 	tasksService := tasks_service.NewTaskService(tasksRepository)
 	tasksTransportHTTP := tasks_transport_http.NewTasksHTTPHandler(tasksService)
 
+	logger.Debug("init statistics", zap.String("feature", "statistics"))
+	statisticsRepository := statistics_postgres_repository.NewStatisticsRepository(pool)
+	statisticsService := statistics_service.NewStatisticsService(statisticsRepository)
+	statisticsTransportHTTP := statistics_transport_http.NewStatisticsHTTPHandler(statisticsService)
+
 	logger.Debug("init of http srever")
 	httpServer := core_http_server.NewHTTPServer(
 		core_http_server.NewConfigMust(),
@@ -74,6 +82,7 @@ func main() {
 	apiVersionRouter := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
 	apiVersionRouter.RegiseterRoutes(usersTransportHTTP.Routes()...)
 	apiVersionRouter.RegiseterRoutes(tasksTransportHTTP.Routes()...)
+	apiVersionRouter.RegiseterRoutes(statisticsTransportHTTP.Routes()...)
 
 	httpServer.RegisterAPIRouters(apiVersionRouter)
 
