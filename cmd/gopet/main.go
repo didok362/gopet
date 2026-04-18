@@ -23,8 +23,15 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+
+	_ "gopet/docs"
 )
 
+// @title       Golang GOPET API
+// @version     1.0
+// @description gopet rest api schema
+// @host        172.25.87.4:5050
+// @BasePath    /api/v1
 func main() {
 	cfg := core_config.NewConfigMust()
 	time.Local = cfg.TimeZone
@@ -73,19 +80,19 @@ func main() {
 	httpServer := core_http_server.NewHTTPServer(
 		core_http_server.NewConfigMust(),
 		logger,
+		core_http_middleware.CORS(),
 		core_http_middleware.RequestID(),
 		core_http_middleware.Logger(logger),
 		core_http_middleware.Trace(),
 		core_http_middleware.Panic(),
 	)
 
-	apiVersionRouter := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
-	apiVersionRouter.RegiseterRoutes(usersTransportHTTP.Routes()...)
-	apiVersionRouter.RegiseterRoutes(tasksTransportHTTP.Routes()...)
-	apiVersionRouter.RegiseterRoutes(statisticsTransportHTTP.Routes()...)
-
-	httpServer.RegisterAPIRouters(apiVersionRouter)
-
+	apiVersionRouterV1 := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
+	apiVersionRouterV1.RegiseterRoutes(usersTransportHTTP.Routes()...)
+	apiVersionRouterV1.RegiseterRoutes(tasksTransportHTTP.Routes()...)
+	apiVersionRouterV1.RegiseterRoutes(statisticsTransportHTTP.Routes()...)
+	httpServer.RegisterAPIRouters(apiVersionRouterV1)
+	httpServer.RegisterSwagger()
 	if err := httpServer.Run(ctx); err != nil {
 		logger.Error("HTTP server run error", zap.Error(err))
 	}

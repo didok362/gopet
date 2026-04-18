@@ -1,0 +1,900 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "gopet rest api schema",
+        "title": "Golang GOPET API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "172.25.87.4:5050",
+    "basePath": "/api/v1",
+    "paths": {
+        "/statistics": {
+            "get": {
+                "description": "Get statistics with optional filters such as: user if/time gap",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "statistics"
+                ],
+                "summary": "Get Statistics",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "user id filtration",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "time scinse starting to analyse statistics",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "time till analyse statistics ",
+                        "name": "to",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully got statistics",
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_statistics_transport_http.GetStatisticsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tasks": {
+            "get": {
+                "description": "Get tasks in system",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "Get task",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filtraion by user id",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Pagination limit parameter",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Pagination offset parameter",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved tasks",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/internal_features_tasks_transport_http.TaskDTOResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create new task in system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "Create task",
+                "parameters": [
+                    {
+                        "description": "CreateTask request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_tasks_transport_http.CreateTaskRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully created task",
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_tasks_transport_http.CreateTaskResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Author not found",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tasks/{id}": {
+            "get": {
+                "description": "Get task in system",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "Get task",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of the task to be retrieved",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved task",
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_tasks_transport_http.GetTaskResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Task not found",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete task in system",
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "Delete task",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of the task to be deleted",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successfully deleted task"
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Task not found",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Get tasks in system\n### Three-state logic:\n1. **Field is not provided:** nothing to be done\n2. **Field is provided(\"go for a walk\"):** redact\n3. **Field is provided(null):** set to null",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "Patch task",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of the task to be patched",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "request body of PatchTask",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_tasks_transport_http.PatchTaskRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully patched task",
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_tasks_transport_http.PatchUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Task not found",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users": {
+            "get": {
+                "description": "Get existing users in system with optional pagination",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get Users",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Pagination limit parameter",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Pagination offset parameter",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved users",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/internal_features_users_transort_http.UserDTOResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create new user in system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Create User",
+                "parameters": [
+                    {
+                        "description": "CreateUser request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_users_transort_http.CreateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Successfully created user",
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_users_transort_http.CreateUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}": {
+            "get": {
+                "description": "Get existing user in system",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get User",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of the user to be retrieved",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved user",
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_users_transort_http.GetUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete existing user in system",
+                "tags": [
+                    "users"
+                ],
+                "summary": "Delete User",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of the user to be deleted",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successfully deleted user"
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "### Three-state logic:\n1. **Field is not provided:** nothing to be done\n2. **Field is provided(+12390481234):** creating new\n3. **Field is provided(null):** set to null",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Patch User",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID of the user to be patched",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "PatchUser request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_users_transort_http.PatchUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully patched user",
+                        "schema": {
+                            "$ref": "#/definitions/internal_features_users_transort_http.PatchUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/gopet_internal_core_transport_response.ErorrResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "gopet_internal_core_transport_response.ErorrResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "full error text"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "short human-readable message"
+                }
+            }
+        },
+        "internal_features_statistics_transport_http.GetStatisticsResponse": {
+            "type": "object",
+            "properties": {
+                "tasks_average_complte_time": {
+                    "type": "string"
+                },
+                "tasks_completed": {
+                    "type": "integer"
+                },
+                "tasks_completed_rate": {
+                    "type": "number"
+                },
+                "tasks_created": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_features_tasks_transport_http.CreateTaskRequest": {
+            "type": "object",
+            "required": [
+                "author_user_id",
+                "title"
+            ],
+            "properties": {
+                "author_user_id": {
+                    "type": "integer",
+                    "example": 123
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "minLength": 1,
+                    "example": "i gotta have a math lesson tomorrow so i need to do my hw"
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1,
+                    "example": "make my math homework"
+                }
+            }
+        },
+        "internal_features_tasks_transport_http.CreateTaskResponse": {
+            "type": "object",
+            "properties": {
+                "author_user_id": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "completed": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "completed_at": {
+                    "type": "string",
+                    "example": "null"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-02-26T10:30:00Z"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "i need to do my homework"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 123
+                },
+                "title": {
+                    "type": "string",
+                    "example": "homework"
+                },
+                "version": {
+                    "type": "integer",
+                    "example": 12
+                }
+            }
+        },
+        "internal_features_tasks_transport_http.GetTaskResponse": {
+            "type": "object",
+            "properties": {
+                "author_user_id": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "completed": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "completed_at": {
+                    "type": "string",
+                    "example": "null"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-02-26T10:30:00Z"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "i need to do my homework"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 123
+                },
+                "title": {
+                    "type": "string",
+                    "example": "homework"
+                },
+                "version": {
+                    "type": "integer",
+                    "example": 12
+                }
+            }
+        },
+        "internal_features_tasks_transport_http.PatchTaskRequest": {
+            "type": "object",
+            "properties": {
+                "completed": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "description": {
+                    "type": "string",
+                    "example": "i need to make hw"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Make HW"
+                }
+            }
+        },
+        "internal_features_tasks_transport_http.PatchUserResponse": {
+            "type": "object",
+            "properties": {
+                "author_user_id": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "completed": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "completed_at": {
+                    "type": "string",
+                    "example": "null"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-02-26T10:30:00Z"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "i need to do my homework"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 123
+                },
+                "title": {
+                    "type": "string",
+                    "example": "homework"
+                },
+                "version": {
+                    "type": "integer",
+                    "example": 12
+                }
+            }
+        },
+        "internal_features_tasks_transport_http.TaskDTOResponse": {
+            "type": "object",
+            "properties": {
+                "author_user_id": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "completed": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "completed_at": {
+                    "type": "string",
+                    "example": "null"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-02-26T10:30:00Z"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "i need to do my homework"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 123
+                },
+                "title": {
+                    "type": "string",
+                    "example": "homework"
+                },
+                "version": {
+                    "type": "integer",
+                    "example": 12
+                }
+            }
+        },
+        "internal_features_users_transort_http.CreateUserRequest": {
+            "type": "object",
+            "required": [
+                "full_name"
+            ],
+            "properties": {
+                "full_name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 3,
+                    "example": "Ivan Ivanon"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "maxLength": 15,
+                    "minLength": 10,
+                    "example": "+38097123804"
+                }
+            }
+        },
+        "internal_features_users_transort_http.CreateUserResponse": {
+            "type": "object",
+            "properties": {
+                "full_name": {
+                    "type": "string",
+                    "example": "Ivan Ivanov"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "+38097123804"
+                },
+                "version": {
+                    "type": "integer",
+                    "example": 2
+                }
+            }
+        },
+        "internal_features_users_transort_http.GetUserResponse": {
+            "type": "object",
+            "properties": {
+                "full_name": {
+                    "type": "string",
+                    "example": "Ivan Ivanov"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "+38097123804"
+                },
+                "version": {
+                    "type": "integer",
+                    "example": 2
+                }
+            }
+        },
+        "internal_features_users_transort_http.PatchUserRequest": {
+            "type": "object",
+            "properties": {
+                "full_name": {
+                    "type": "string",
+                    "example": "Iv1n Invaov"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "+38097223804"
+                }
+            }
+        },
+        "internal_features_users_transort_http.PatchUserResponse": {
+            "type": "object",
+            "properties": {
+                "full_name": {
+                    "type": "string",
+                    "example": "Ivan Ivanov"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "+38097123804"
+                },
+                "version": {
+                    "type": "integer",
+                    "example": 2
+                }
+            }
+        },
+        "internal_features_users_transort_http.UserDTOResponse": {
+            "type": "object",
+            "properties": {
+                "full_name": {
+                    "type": "string",
+                    "example": "Ivan Ivanov"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "+38097123804"
+                },
+                "version": {
+                    "type": "integer",
+                    "example": 2
+                }
+            }
+        }
+    }
+}

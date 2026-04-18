@@ -12,9 +12,9 @@ import (
 )
 
 type PatchTaskRequest struct {
-	Title       core_http_types.Nulladble[string] `json:"title"`
-	Description core_http_types.Nulladble[string] `json:"description"`
-	Completed   core_http_types.Nulladble[bool]   `json:"completed"`
+	Title       core_http_types.Nulladble[string] `json:"title"       swaggertype:"string"  example:"Make HW"`
+	Description core_http_types.Nulladble[string] `json:"description" swaggertype:"string"  example:"i need to make hw"`
+	Completed   core_http_types.Nulladble[bool]   `json:"completed"   swaggertype:"boolean" example:"false"`
 }
 
 func (r *PatchTaskRequest) Validate() error {
@@ -49,6 +49,24 @@ func (r *PatchTaskRequest) Validate() error {
 
 type PatchUserResponse TaskDTOResponse
 
+// PatchTask    godoc
+// @Summary     Patch task
+// @Description Get tasks in system
+// @Description ### Three-state logic:
+// @Description 1. **Field is not provided:** nothing to be done
+// @Description 2. **Field is provided("go for a walk"):** redact
+// @Description 3. **Field is provided(null):** set to null
+// @Tags        tasks
+// @Produce		json
+// @Accept 		json
+// @Param       id      path     int              true           "ID of the task to be patched"
+// @Param 		request body     PatchTaskRequest true           "request body of PatchTask"
+// @Success     200     {object} PatchUserResponse               "Successfully patched task"
+// @Failure     400     {object} core_http_respose.ErorrResponse "Bad request"
+// @Failure     404     {object} core_http_respose.ErorrResponse "Task not found"
+// @Failure     409     {object} core_http_respose.ErorrResponse "Conflict"
+// @Failure     500     {object} core_http_respose.ErorrResponse "Internal server error"
+// @Router      /tasks/{id} [patch]
 func (h *TasksHTTPHandler) PatchTask(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

@@ -7,6 +7,16 @@ import (
 	"net/http"
 )
 
+// DeleteTask   godoc
+// @Summary     Delete task
+// @Description Delete task in system
+// @Tags        tasks
+// @Param       id      path     int     true                    "ID of the task to be deleted"
+// @Success     204                                              "Successfully deleted task"
+// @Failure     400     {object} core_http_respose.ErorrResponse "Bad request"
+// @Failure     404     {object} core_http_respose.ErorrResponse "Task not found"
+// @Failure     500     {object} core_http_respose.ErorrResponse "Internal server error"
+// @Router      /tasks/{id} [delete]
 func (h *TasksHTTPHandler) DeleteTask(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

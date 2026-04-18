@@ -51,7 +51,6 @@ socat-down:
 gopet-run:
 	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
 	export POSTGRES_HOST=localhost && \
-	go mod tidy && \
 	go run cmd/gopet/main.go
 
 logs-cleanup:
@@ -72,3 +71,11 @@ gopet-undeploy:
 
 ps:
 	@docker compose ps
+
+swagger-gen:
+	@docker compose run --rm swagger \
+		init \
+		-g cmd/gopet/main.go \
+		-o docs \
+		--parseInternal \
+		--parseDependency

@@ -10,6 +10,17 @@ import (
 
 type GetUsersResponse []UserDTOResponse
 
+// GetUsers     godoc
+// @Summary     Get Users
+// @Description Get existing users in system with optional pagination
+// @Tags        users
+// @Produce		json
+// @Param       limit  query int false 						 "Pagination limit parameter"
+// @Param       offset query int false 						 "Pagination offset parameter"
+// @Success     200 {object} GetUsersResponse                "Successfully retrieved users"
+// @Failure     400 {object} core_http_respose.ErorrResponse "Bad request"
+// @Failure     500 {object} core_http_respose.ErorrResponse "Internal server error"
+// @Router      /users [get]
 func (h *UsersHTTPHandler) GetUsers(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
@@ -19,7 +30,7 @@ func (h *UsersHTTPHandler) GetUsers(rw http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		responseHandler.ErorrResponse(
 			err,
-			"failed to get limit/offset querry params",
+			"failed to get limit/offset query params",
 		)
 		return
 	}

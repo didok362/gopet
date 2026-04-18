@@ -13,13 +13,13 @@ import (
 )
 
 type PatchUserRequest struct {
-	FullName    core_http_types.Nulladble[string] `json:"full_name"`
-	PhoneNumber core_http_types.Nulladble[string] `json:"phone_number"`
+	FullName    core_http_types.Nulladble[string] `json:"full_name"    swaggertype:"string" example:"Iv1n Invaov"`
+	PhoneNumber core_http_types.Nulladble[string] `json:"phone_number" swaggertype:"string" example:"+38097223804"`
 }
 
 func (r *PatchUserRequest) Validate() error {
-	if r.FullName.Set {
-		if r.FullName.Value == nil {
+	if r.FullName.Value == nil {
+		if r.FullName.Set {
 			return fmt.Errorf("FullName cant be empty")
 		}
 
@@ -48,6 +48,23 @@ func (r *PatchUserRequest) Validate() error {
 
 type PatchUserResponse UserDTOResponse
 
+// PatchUser    godoc
+// @Summary     Patch User
+// @Description ### Three-state logic:
+// @Description 1. **Field is not provided:** nothing to be done
+// @Description 2. **Field is provided(+12390481234):** creating new
+// @Description 3. **Field is provided(null):** set to null
+// @Tags        users
+// @Accept      json
+// @Produce     json
+// @Param       id path int true "ID of the user to be patched"
+// @Param       request body PatchUserRequest true "PatchUser request body"
+// @Success     200 {object} PatchUserResponse               "Successfully patched user"
+// @Failure     400 {object} core_http_respose.ErorrResponse "Bad request"
+// @Failure     404 {object} core_http_respose.ErorrResponse "Not found"
+// @Failure     409 {object} core_http_respose.ErorrResponse "Conflict"
+// @Failure     500 {object} core_http_respose.ErorrResponse "Internal server error"
+// @Router      /users/{id} [patch]
 func (h *UsersHTTPHandler) PatchUser(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

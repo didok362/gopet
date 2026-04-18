@@ -7,6 +7,16 @@ import (
 	"net/http"
 )
 
+// DeleteUser   godoc
+// @Summary     Delete User
+// @Description Delete existing user in system
+// @Tags        users
+// @Param       id path int true                             "ID of the user to be deleted"
+// @Success     204                                          "Successfully deleted user"
+// @Failure     400 {object} core_http_respose.ErorrResponse "Bad request"
+// @Failure     404 {object} core_http_respose.ErorrResponse "Not found"
+// @Failure     500 {object} core_http_respose.ErorrResponse "Internal server error"
+// @Router      /users/{id} [delete]
 func (h *UsersHTTPHandler) DeleteUser(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
