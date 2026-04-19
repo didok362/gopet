@@ -38,6 +38,15 @@ func (h *HTTPResponseHandler) NoContentResponse() {
 	h.rw.WriteHeader(http.StatusNoContent)
 }
 
+func (h *HTTPResponseHandler) HTMLResponse(html []byte) {
+	h.rw.WriteHeader(http.StatusOK)
+
+	h.rw.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if _, err := h.rw.Write(html); err != nil {
+		h.log.Error("write HTML HTTP respose", zap.Error(err))
+	}
+}
+
 func (h *HTTPResponseHandler) ErorrResponse(err error, msg string) {
 	var (
 		statusCode int

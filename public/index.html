@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GoPet — Task Manager</title>
+  <meta name="description" content="GoPet REST API frontend — manage tasks, users and view statistics." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Design Tokens ────────────────────────────────────────────── */
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface2: #1c2230;
+      --border: #30363d;
+      --accent: #4f8ef7;
+      --accent2: #7c5af7;
+      --success: #3fb950;
+      --warning: #d29922;
+      --danger: #f85149;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --radius: 10px;
+      --sidebar-w: 220px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* ── Scrollbar ────────────────────────────────────────────────── */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    /* ── Layout ───────────────────────────────────────────────────── */
+    #app {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ──────────────────────────────────────────────────── */
+    #sidebar {
+      width: var(--sidebar-w);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 20px 0;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 18px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 10px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .logo-text {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -.3px;
+    }
+
+    .logo-version {
+      font-size: 10px;
+      color: var(--muted);
+      background: var(--surface2);
+      padding: 2px 6px;
+      border-radius: 20px;
+    }
+
+    .nav-section {
+      padding: 0 12px;
+      margin-top: 4px;
+    }
+
+    .nav-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      padding: 4px 8px 8px;
+    }
+
+    .nav-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: var(--radius);
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      text-align: left;
+    }
+
+    .nav-btn:hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .nav-btn.active {
+      background: rgba(79, 142, 247, .15);
+      color: var(--accent);
+    }
+
+    .nav-btn svg {
+      flex-shrink: 0;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      border-top: 1px solid var(--border);
+      padding: 16px 18px 0;
+    }
+
+    .dark-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 38px;
+      height: 22px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: var(--surface2);
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background .25s;
+    }
+
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      background: var(--muted);
+      border-radius: 50%;
+      transition: transform .25s, background .25s;
+    }
+
+    .toggle-switch input:checked+.toggle-track {
+      background: var(--accent);
+    }
+
+    .toggle-switch input:checked+.toggle-track::after {
+      transform: translateX(16px);
+      background: #fff;
+    }
+
+    /* ── Main ─────────────────────────────────────────────────────── */
+    #main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Top bar ──────────────────────────────────────────────────── */
+    .topbar {
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+
+    .page-title {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .topbar-right {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* ── Buttons ──────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: opacity .15s, transform .1s;
+    }
+
+    .btn:hover {
+      opacity: .87;
+    }
+
+    .btn:active {
+      transform: scale(.97);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+    }
+
+    .btn-ghost {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-danger {
+      background: rgba(248, 81, 73, .15);
+      color: var(--danger);
+      border: 1px solid rgba(248, 81, 73, .3);
+    }
+
+    .btn-sm {
+      padding: 5px 11px;
+      font-size: 12px;
+    }
+
+    /* ── Content area ─────────────────────────────────────────────── */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px;
+    }
+
+    /* ── Filter bar ───────────────────────────────────────────────── */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 18px;
+      margin-bottom: 20px;
+    }
+
+    .filter-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .filter-item label {
+      font-weight: 500;
+    }
+
+    .filter-item select,
+    .filter-item input[type=number],
+    .filter-item input[type=text] {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 7px;
+      padding: 6px 10px;
+      font-size: 13px;
+      outline: none;
+      transition: border-color .2s;
+      font-family: inherit;
+      min-width: 100px;
+    }
+
+    .filter-item select:focus,
+    .filter-item input:focus {
+      border-color: var(--accent);
+    }
+
+    .filter-sep {
+      flex: 1;
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* ── Task card ────────────────────────────────────────────────── */
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .task-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: border-color .2s, box-shadow .2s;
+      animation: fadeIn .25s ease;
+    }
+
+    .task-card:hover {
+      border-color: rgba(79, 142, 247, .35);
+      box-shadow: 0 0 0 1px rgba(79, 142, 247, .12);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    .task-check {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: border-color .2s, background .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+    }
+
+    .task-check.done {
+      border-color: var(--success);
+      background: var(--success);
+    }
+
+    .task-check.done::after {
+      content: '✓';
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .task-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .task-title {
+      font-size: 14.5px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .task-title.done-text {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    .task-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      flex-wrap: wrap;
+    }
+
+    .meta-chip {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color .15s, border-color .15s, background .15s;
+    }
+
+    .icon-btn:hover {
+      color: var(--text);
+      border-color: var(--accent);
+      background: rgba(79, 142, 247, .1);
+    }
+
+    .icon-btn.danger:hover {
+      color: var(--danger);
+      border-color: var(--danger);
+      background: rgba(248, 81, 73, .1);
+    }
+
+    /* ── Status badge ─────────────────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge-in-progress {
+      background: rgba(210, 153, 34, .15);
+      color: var(--warning);
+      border: 1px solid rgba(210, 153, 34, .3);
+    }
+
+    .badge-done {
+      background: rgba(63, 185, 80, .15);
+      color: var(--success);
+      border: 1px solid rgba(63, 185, 80, .3);
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* ── Users page ───────────────────────────────────────────────── */
+    .user-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .user-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      animation: fadeIn .25s ease;
+      transition: border-color .2s;
+    }
+
+    .user-card:hover {
+      border-color: rgba(79, 142, 247, .4);
+    }
+
+    .user-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .user-info {
+      flex: 1;
+    }
+
+    .user-name {
+      font-size: 14.5px;
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+
+    .user-phone {
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+
+    .user-meta {
+      font-size: 11.5px;
+      color: var(--muted);
+    }
+
+    .user-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .user-id-chip {
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--surface2);
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    /* ── Statistics page ──────────────────────────────────────────── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      animation: fadeIn .25s ease;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .stat-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .stat-section-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    /* ── Date filter ──────────────────────────────────────────────── */
+    .date-filter {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .date-filter input[type=date] {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 7px;
+      padding: 7px 12px;
+      font-size: 13px;
+      outline: none;
+      font-family: inherit;
+      transition: border-color .2s;
+    }
+
+    .date-filter input[type=date]:focus {
+      border-color: var(--accent);
+    }
+
+    /* ── Modal ────────────────────────────────────────────────────── */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .6);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      animation: overlayIn .2s ease;
+    }
+
+    @keyframes overlayIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px;
+      width: min(480px, 94vw);
+      animation: modalIn .25s cubic-bezier(.34, 1.56, .64, 1);
+    }
+
+    @keyframes modalIn {
+      from {
+        opacity: 0;
+        transform: scale(.92) translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    .modal-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 20px;
+      cursor: pointer;
+      transition: color .15s;
+      line-height: 1;
+    }
+
+    .modal-close:hover {
+      color: var(--text);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 7px;
+      display: block;
+    }
+
+    .form-input,
+    .form-textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      color: var(--text);
+      font-size: 13.5px;
+      outline: none;
+      transition: border-color .2s;
+      font-family: inherit;
+    }
+
+    .form-input:focus,
+    .form-textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79, 142, 247, .1);
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 22px;
+    }
+
+    /* ── Toast ────────────────────────────────────────────────────── */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 200;
+    }
+
+    .toast {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: toastIn .3s ease;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .4);
+    }
+
+    .toast.success {
+      border-color: rgba(63, 185, 80, .4);
+    }
+
+    .toast.error {
+      border-color: rgba(248, 81, 73, .4);
+    }
+
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateX(40px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    /* ── Empty / Loading state ────────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+
+    .empty-state svg {
+      opacity: .3;
+      margin-bottom: 14px;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      margin: 60px auto;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ── Pagination ───────────────────────────────────────────────── */
+    .pagination {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 20px;
+      justify-content: center;
+    }
+
+    .page-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: .15s;
+    }
+
+    .page-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .page-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .page-btn:disabled {
+      opacity: .35;
+      cursor: default;
+    }
+
+    .page-info {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* ── Responsive ───────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      :root {
+        --sidebar-w: 0px;
+      }
+
+      #sidebar {
+        position: fixed;
+        left: -220px;
+        z-index: 50;
+        transition: left .25s;
+        height: 100vh;
+        width: 220px;
+      }
+
+      #sidebar.open {
+        left: 0;
+      }
+    }
+
+    /* ── Light mode overrides ─────────────────────────────────────── */
+    body.light {
+      --bg: #f0f2f5;
+      --surface: #ffffff;
+      --surface2: #f0f2f5;
+      --border: #d0d7de;
+      --text: #1f2328;
+      --muted: #656d76;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <!-- Sidebar -->
+    <aside id="sidebar">
+      <div class="logo">
+        <div class="logo-icon">🐾</div>
+        <div>
+          <div class="logo-text">GoPet</div>
+        </div>
+        <span class="logo-version">v1</span>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Navigation</div>
+        <button class="nav-btn active" id="nav-tasks" onclick="showPage('tasks')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 11 12 14 22 4" />
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+          </svg>
+          Tasks
+        </button>
+        <button class="nav-btn" id="nav-users" onclick="showPage('users')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          Users
+        </button>
+        <button class="nav-btn" id="nav-stats" onclick="showPage('stats')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg>
+          Statistics
+        </button>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="dark-toggle">
+          <span>Dark mode</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="dark-toggle" checked onchange="toggleTheme(this.checked)" />
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div id="main">
+      <!-- Topbar -->
+      <div class="topbar">
+        <div class="page-title" id="page-title">Tasks</div>
+        <div class="topbar-right" id="topbar-actions">
+          <button class="btn btn-primary" onclick="openCreateTaskModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            New Task
+          </button>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="content" id="content">
+        <!-- Pages injected here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toast-container"></div>
+
+  <script>
+    // ── Config ────────────────────────────────────────────────────────
+    const API = '/api/v1';
+
+    // ── State ─────────────────────────────────────────────────────────
+    let currentPage = 'tasks';
+    let taskOffset = 0;
+    let taskLimit = 20;
+    let taskUserFilter = '';
+    let allUsers = [];
+
+    // ── Navigation ────────────────────────────────────────────────────
+    function showPage(page) {
+      currentPage = page;
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('nav-' + page)?.classList.add('active');
+      document.getElementById('page-title').textContent = { tasks: 'Tasks', users: 'Users', stats: 'Statistics' }[page];
+
+      const actions = document.getElementById('topbar-actions');
+      if (page === 'tasks') {
+        actions.innerHTML = `<button class="btn btn-primary" onclick="openCreateTaskModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> New Task</button>`;
+      } else if (page === 'users') {
+        actions.innerHTML = `<button class="btn btn-primary" onclick="openCreateUserModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> New User</button>`;
+      } else {
+        actions.innerHTML = '';
+      }
+
+      if (page === 'tasks') renderTasksPage();
+      else if (page === 'users') renderUsersPage();
+      else renderStatsPage();
+    }
+
+    // ── API Helpers ───────────────────────────────────────────────────
+    async function apiFetch(path, opts = {}) {
+      const res = await fetch(API + path, {
+        headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+        ...opts
+      });
+      if (res.status === 204) return null;
+      const body = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(body?.message || body?.error || `HTTP ${res.status}`);
+      return body;
+    }
+
+    // ── Toast ─────────────────────────────────────────────────────────
+    function toast(msg, type = 'success') {
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.innerHTML = `<span>${type === 'success' ? '✓' : '✕'}</span> ${msg}`;
+      document.getElementById('toast-container').appendChild(el);
+      setTimeout(() => el.remove(), 3200);
+    }
+
+    // ── Theme ─────────────────────────────────────────────────────────
+    function toggleTheme(isDark) {
+      document.body.classList.toggle('light', !isDark);
+    }
+
+    // ── Utilities ─────────────────────────────────────────────────────
+    function formatDate(str) {
+      if (!str || str === 'null' || str === '"null"') return null;
+      const d = new Date(str);
+      return isNaN(d) ? null : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function timeSince(str) {
+      if (!str) return '';
+      const diff = (Date.now() - new Date(str)) / 1000;
+      if (diff < 60) return `${Math.round(diff)}s ago`;
+      if (diff < 3600) return `${Math.round(diff / 60)}m ago`;
+      if (diff < 86400) return `${Math.round(diff / 3600)}h ago`;
+      return `${Math.round(diff / 86400)}d ago`;
+    }
+
+    function initials(name) {
+      return name?.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
+    }
+
+    function userName(id) {
+      const u = allUsers.find(u => u.id === id);
+      return u ? u.full_name : `User #${id}`;
+    }
+
+    function setContent(html) {
+      document.getElementById('content').innerHTML = html;
+    }
+
+    // ── Tasks Page ────────────────────────────────────────────────────
+    async function renderTasksPage() {
+      setContent(`<div class="spinner"></div>`);
+      try {
+        // Preload users for filter dropdown
+        if (!allUsers.length) allUsers = await apiFetch('/users?limit=100') || [];
+
+        const userOptions = allUsers.map(u =>
+          `<option value="${u.id}" ${String(u.id) === String(taskUserFilter) ? 'selected' : ''}>${u.full_name}</option>`
+        ).join('');
+
+        let url = `/tasks?limit=${taskLimit}&offset=${taskOffset}`;
+        if (taskUserFilter) url += `&user_id=${taskUserFilter}`;
+        const tasks = await apiFetch(url) || [];
+
+        const taskCards = tasks.length ? tasks.map(t => taskCard(t)).join('') : emptyState('No tasks found', `<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>`);
+
+        const pageNum = Math.floor(taskOffset / taskLimit) + 1;
+
+        setContent(`
+      <div class="filter-bar">
+        <div class="filter-item">
+          <label>User</label>
+          <select id="task-user-filter" onchange="applyTaskFilter()">
+            <option value="">All users</option>
+            ${userOptions}
+          </select>
+        </div>
+        <div class="filter-item">
+          <label>Per page</label>
+          <select id="task-limit" onchange="applyTaskLimit()">
+            ${[10, 20, 50].map(n => `<option value="${n}" ${n === taskLimit ? 'selected' : ''}>${n}</option>`).join('')}
+          </select>
+        </div>
+        <div class="filter-sep"></div>
+        <div class="filter-actions">
+          <button class="btn btn-ghost" onclick="resetTaskFilters()">Reset</button>
+        </div>
+      </div>
+
+      <div class="task-list" id="task-list">${taskCards}</div>
+
+      <div class="pagination" id="pagination">
+        <button class="page-btn" onclick="prevPage()" ${taskOffset === 0 ? 'disabled' : ''}>‹</button>
+        <span class="page-info">Page ${pageNum} &nbsp;·&nbsp; ${tasks.length} items</span>
+        <button class="page-btn" onclick="nextPage()" ${tasks.length < taskLimit ? 'disabled' : ''}>›</button>
+      </div>
+    `);
+      } catch (e) {
+        setContent(`<div class="empty-state"><p style="color:var(--danger)">Failed to load tasks: ${e.message}</p></div>`);
+      }
+    }
+
+    function taskCard(t) {
+      const done = t.completed;
+      const uname = userName(t.author_user_id);
+      const createdStr = formatDate(t.created_at);
+      const since = timeSince(t.created_at);
+      const badge = done
+        ? `<span class="badge badge-done"><span class="badge-dot"></span>Done</span>`
+        : `<span class="badge badge-in-progress"><span class="badge-dot"></span>In progress · ${since}</span>`;
+
+      return `
+    <div class="task-card" id="task-${t.id}">
+      <div class="task-check ${done ? 'done' : ''}" onclick="toggleTask(${t.id}, ${done}, ${t.version})" title="${done ? 'Mark as not done' : 'Mark as done'}"></div>
+      <div class="task-body">
+        <div class="task-title ${done ? 'done-text' : ''}">${escHtml(t.title)}</div>
+        <div class="task-meta">
+          <span class="meta-chip">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            ${escHtml(uname)}
+          </span>
+          ${createdStr ? `<span class="meta-chip"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${createdStr}</span>` : ''}
+          ${badge}
+          <span style="color:var(--muted);font-size:11px">v${t.version}</span>
+        </div>
+      </div>
+      <div class="task-actions">
+        <button class="icon-btn" onclick="openEditTaskModal(${t.id})" title="Edit">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="icon-btn danger" onclick="deleteTask(${t.id})" title="Delete">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+      </div>
+    </div>`;
+    }
+
+    function emptyState(msg, icon) {
+      return `<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">${icon}</svg><p>${msg}</p></div>`;
+    }
+
+    function escHtml(s) {
+      return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function applyTaskFilter() {
+      taskUserFilter = document.getElementById('task-user-filter')?.value || '';
+      taskOffset = 0;
+      renderTasksPage();
+    }
+
+    function applyTaskLimit() {
+      taskLimit = parseInt(document.getElementById('task-limit')?.value) || 20;
+      taskOffset = 0;
+      renderTasksPage();
+    }
+
+    function resetTaskFilters() {
+      taskUserFilter = '';
+      taskLimit = 20;
+      taskOffset = 0;
+      renderTasksPage();
+    }
+
+    function prevPage() { if (taskOffset >= taskLimit) { taskOffset -= taskLimit; renderTasksPage(); } }
+    function nextPage() { taskOffset += taskLimit; renderTasksPage(); }
+
+    async function toggleTask(id, done, version) {
+      try {
+        await apiFetch(`/tasks/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ completed: !done, version })
+        });
+        toast(done ? 'Task marked as in progress' : 'Task marked as done');
+        renderTasksPage();
+      } catch (e) { toast(e.message, 'error'); }
+    }
+
+    async function deleteTask(id) {
+      if (!confirm('Delete this task?')) return;
+      try {
+        await apiFetch(`/tasks/${id}`, { method: 'DELETE' });
+        toast('Task deleted');
+        renderTasksPage();
+      } catch (e) { toast(e.message, 'error'); }
+    }
+
+    // ── Create Task Modal ─────────────────────────────────────────────
+    function openCreateTaskModal() {
+      if (!allUsers.length) { toast('Load the tasks page first to populate users', 'error'); return; }
+      const userOpts = allUsers.map(u => `<option value="${u.id}">${escHtml(u.full_name)}</option>`).join('');
+      showModal(`
+    <div class="modal-title">
+      <span>New Task</span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Title *</label>
+      <input class="form-input" id="m-task-title" placeholder="Task title" maxlength="100" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea class="form-textarea" id="m-task-desc" placeholder="Optional description" maxlength="1000"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Author *</label>
+      <select class="form-input" id="m-task-user">${userOpts}</select>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitCreateTask()">Create Task</button>
+    </div>
+  `);
+    }
+
+    async function submitCreateTask() {
+      const title = document.getElementById('m-task-title')?.value.trim();
+      const desc = document.getElementById('m-task-desc')?.value.trim();
+      const uid = parseInt(document.getElementById('m-task-user')?.value);
+      if (!title) { toast('Title is required', 'error'); return; }
+      try {
+        await apiFetch('/tasks', {
+          method: 'POST',
+          body: JSON.stringify({ title, description: desc || undefined, author_user_id: uid })
+        });
+        toast('Task created!');
+        closeModal();
+        renderTasksPage();
+      } catch (e) { toast(e.message, 'error'); }
+    }
+
+    async function openEditTaskModal(id) {
+      try {
+        const t = await apiFetch(`/tasks/${id}`);
+        showModal(`
+      <div class="modal-title">
+        <span>Edit Task #${t.id}</span>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Title</label>
+        <input class="form-input" id="m-edit-title" value="${escHtml(t.title)}" maxlength="100" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-textarea" id="m-edit-desc" maxlength="1000">${escHtml(t.description || '')}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-input" id="m-edit-done">
+          <option value="false" ${!t.completed ? 'selected' : ''}>In Progress</option>
+          <option value="true" ${t.completed ? 'selected' : ''}>Done</option>
+        </select>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitEditTask(${t.id})">Save Changes</button>
+      </div>
+    `);
+      } catch (e) { toast(e.message, 'error'); }
+    }
+
+    async function submitEditTask(id) {
+      const title = document.getElementById('m-edit-title')?.value.trim();
+      const desc = document.getElementById('m-edit-desc')?.value.trim();
+      const completed = document.getElementById('m-edit-done')?.value === 'true';
+      const body = {};
+      if (title) body.title = title;
+      if (desc !== undefined) body.description = desc || null;
+      body.completed = completed;
+      try {
+        await apiFetch(`/tasks/${id}`, { method: 'PATCH', body: JSON.stringify(body) });
+        toast('Task updated!');
+        closeModal();
+        renderTasksPage();
+      } catch (e) { toast(e.message, 'error'); }
+    }
+
+    // ── Users Page ────────────────────────────────────────────────────
+    let userOffset = 0;
+    let userLimit = 20;
+
+    async function renderUsersPage() {
+      setContent(`<div class="spinner"></div>`);
+      try {
+        const users = await apiFetch(`/users?limit=${userLimit}&offset=${userOffset}`) || [];
+        allUsers = users.length ? users : allUsers;
+
+        const cards = users.length
+          ? users.map(u => userCard(u)).join('')
+          : emptyState('No users found', `<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>`);
+
+        const pageNum = Math.floor(userOffset / userLimit) + 1;
+
+        setContent(`
+      <div class="filter-bar">
+        <div class="filter-item">
+          <label>Per page</label>
+          <select id="user-limit" onchange="applyUserLimit()">
+            ${[10, 20, 50].map(n => `<option value="${n}" ${n === userLimit ? 'selected' : ''}>${n}</option>`).join('')}
+          </select>
+        </div>
+        <div class="filter-sep"></div>
+        <span style="font-size:13px;color:var(--muted)">${users.length} user${users.length !== 1 ? 's' : ''} shown</span>
+      </div>
+      <div class="user-grid">${cards}</div>
+      <div class="pagination">
+        <button class="page-btn" onclick="prevUserPage()" ${userOffset === 0 ? 'disabled' : ''}>‹</button>
+        <span class="page-info">Page ${pageNum} &nbsp;·&nbsp; ${users.length} items</span>
+        <button class="page-btn" onclick="nextUserPage()" ${users.length < userLimit ? 'disabled' : ''}>›</button>
+      </div>
+    `);
+      } catch (e) {
+        setContent(`<div class="empty-state"><p style="color:var(--danger)">Failed to load users: ${e.message}</p></div>`);
+      }
+    }
+
+    function userCard(u) {
+      return `
+    <div class="user-card">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="user-avatar">${initials(u.full_name)}</div>
+        <div class="user-info">
+          <div class="user-name">${escHtml(u.full_name)}</div>
+          <div class="user-phone">${u.phone_number ? escHtml(u.phone_number) : '<span style="opacity:.4">No phone</span>'}</div>
+        </div>
+      </div>
+      <div class="user-footer">
+        <span class="user-id-chip">ID: ${u.id}</span>
+        <span class="user-meta">v${u.version}</span>
+        <div style="display:flex;gap:6px">
+          <button class="icon-btn" onclick="openEditUserModal(${u.id})" title="Edit">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="icon-btn danger" onclick="deleteUser(${u.id})" title="Delete">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>`;
+    }
+
+    function applyUserLimit() { userLimit = parseInt(document.getElementById('user-limit')?.value) || 20; userOffset = 0; renderUsersPage(); }
+    function prevUserPage() { if (userOffset >= userLimit) { userOffset -= userLimit; renderUsersPage(); } }
+    function nextUserPage() { userOffset += userLimit; renderUsersPage(); }
+
+    async function deleteUser(id) {
+      if (!confirm('Delete this user?')) return;
+      try {
+        await apiFetch(`/users/${id}`, { method: 'DELETE' });
+        toast('User deleted');
+        renderUsersPage();
+      } catch (e) { toast(e.message, 'error'); }
+    }
+
+    function openCreateUserModal() {
+      showModal(`
+    <div class="modal-title">
+      <span>New User</span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Full Name *</label>
+      <input class="form-input" id="m-user-name" placeholder="Ivan Ivanov" maxlength="100" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Phone Number</label>
+      <input class="form-input" id="m-user-phone" placeholder="+38097123804" maxlength="15" />
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitCreateUser()">Create User</button>
+    </div>
+  `);
+    }
+
+    async function submitCreateUser() {
+      const full_name = document.getElementById('m-user-name')?.value.trim();
+      const phone_number = document.getElementById('m-user-phone')?.value.trim();
+      if (!full_name || full_name.length < 3) { toast('Full name must be at least 3 characters', 'error'); return; }
+      try {
+        await apiFetch('/users', {
+          method: 'POST',
+          body: JSON.stringify({ full_name, ...(phone_number ? { phone_number } : {}) })
+        });
+        toast('User created!');
+        closeModal();
+        renderUsersPage();
+      } catch (e) { toast(e.message, 'error'); }
+    }
+
+    async function openEditUserModal(id) {
+      try {
+        const u = await apiFetch(`/users/${id}`);
+        showModal(`
+      <div class="modal-title">
+        <span>Edit User #${u.id}</span>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input class="form-input" id="m-edit-uname" value="${escHtml(u.full_name)}" maxlength="100" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone Number</label>
+        <input class="form-input" id="m-edit-uphone" value="${escHtml(u.phone_number || '')}" maxlength="15" placeholder="+38097123804" />
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitEditUser(${u.id})">Save Changes</button>
+      </div>
+    `);
+      } catch (e) { toast(e.message, 'error'); }
+    }
+
+    async function submitEditUser(id) {
+      const full_name = document.getElementById('m-edit-uname')?.value.trim();
+      const phone_number = document.getElementById('m-edit-uphone')?.value.trim();
+      const body = {};
+      if (full_name) body.full_name = full_name;
+      if (phone_number !== undefined) body.phone_number = phone_number || null;
+      try {
+        await apiFetch(`/users/${id}`, { method: 'PATCH', body: JSON.stringify(body) });
+        toast('User updated!');
+        closeModal();
+        renderUsersPage();
+      } catch (e) { toast(e.message, 'error'); }
+    }
+
+    // ── Statistics Page ───────────────────────────────────────────────
+    async function renderStatsPage() {
+      setContent(`<div class="spinner"></div>`);
+      const fromVal = '';
+      const toVal = '';
+      await loadStats(fromVal, toVal, '');
+    }
+
+    async function loadStats(from, to, userId) {
+      try {
+        let url = '/statistics?';
+        if (userId) url += `user_id=${userId}&`;
+        if (from) url += `from=${new Date(from).toISOString()}&`;
+        if (to) url += `to=${new Date(to + 'T23:59:59').toISOString()}&`;
+
+        const s = await apiFetch(url) || {};
+
+        const rate = ((s.tasks_completed_rate ?? 0) * 100).toFixed(1);
+        const avgTime = s.tasks_average_complte_time || '—';
+
+        if (!allUsers.length) allUsers = await apiFetch('/users?limit=100') || [];
+        const userOpts = allUsers.map(u => `<option value="${u.id}">${escHtml(u.full_name)}</option>`).join('');
+
+        setContent(`
+      <div class="filter-bar" style="margin-bottom:24px">
+        <div class="filter-item">
+          <label>User</label>
+          <select id="stat-user" onchange="refreshStats()">
+            <option value="">All users</option>
+            ${userOpts}
+          </select>
+        </div>
+        <div class="filter-item">
+          <label>From</label>
+          <input type="date" id="stat-from" value="${from}" onchange="refreshStats()" />
+        </div>
+        <div class="filter-item">
+          <label>To</label>
+          <input type="date" id="stat-to" value="${to}" onchange="refreshStats()" />
+        </div>
+        <div class="filter-sep"></div>
+        <button class="btn btn-ghost" onclick="clearStatFilters()">Reset</button>
+      </div>
+
+      <div class="stat-section-title">Overview</div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Tasks Created</div>
+          <div class="stat-value" style="color:var(--accent)">${s.tasks_created ?? 0}</div>
+          <div class="stat-sub">Total tasks in system</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Tasks Completed</div>
+          <div class="stat-value" style="color:var(--success)">${s.tasks_completed ?? 0}</div>
+          <div class="stat-sub">Successfully done</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Completion Rate</div>
+          <div class="stat-value" style="color:${parseFloat(rate) >= 70 ? 'var(--success)' : parseFloat(rate) >= 40 ? 'var(--warning)' : 'var(--danger)'}">${rate}%</div>
+          <div class="stat-sub">Done / Created</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Avg. Completion Time</div>
+          <div class="stat-value" style="font-size:22px;color:var(--accent2)">${avgTime}</div>
+          <div class="stat-sub">Average time to finish a task</div>
+        </div>
+      </div>
+
+      <div class="stat-section-title" style="margin-top:8px">Progress Bar</div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:8px">
+          <span>Completion Rate</span><span>${rate}%</span>
+        </div>
+        <div style="background:var(--surface2);border-radius:999px;height:10px;overflow:hidden">
+          <div style="background:linear-gradient(90deg,var(--accent),var(--accent2));height:100%;width:${Math.min(parseFloat(rate), 100)}%;border-radius:999px;transition:width .6s ease"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:10px">
+          <span>✓ ${s.tasks_completed ?? 0} done</span>
+          <span>${(s.tasks_created ?? 0) - (s.tasks_completed ?? 0)} remaining</span>
+        </div>
+      </div>
+    `);
+      } catch (e) {
+        setContent(`<div class="empty-state"><p style="color:var(--danger)">Failed to load statistics: ${e.message}</p></div>`);
+      }
+    }
+
+    function refreshStats() {
+      const from = document.getElementById('stat-from')?.value || '';
+      const to = document.getElementById('stat-to')?.value || '';
+      const userId = document.getElementById('stat-user')?.value || '';
+      loadStats(from, to, userId);
+    }
+
+    function clearStatFilters() {
+      renderStatsPage();
+    }
+
+    // ── Modal ─────────────────────────────────────────────────────────
+    function showModal(html) {
+      const overlay = document.createElement('div');
+      overlay.className = 'overlay';
+      overlay.id = 'modal-overlay';
+      overlay.innerHTML = `<div class="modal">${html}</div>`;
+      overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+      document.body.appendChild(overlay);
+    }
+
+    function closeModal() {
+      document.getElementById('modal-overlay')?.remove();
+    }
+
+    // ── Init ──────────────────────────────────────────────────────────
+    showPage('tasks');
+  </script>
+</body>
+
+</html>

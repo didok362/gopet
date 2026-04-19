@@ -17,6 +17,9 @@ import (
 	users_postgres_repository "gopet/internal/features/users/repository/postgres"
 	users_service "gopet/internal/features/users/service"
 	users_transport_http "gopet/internal/features/users/transort/http"
+	web_fs_repository "gopet/internal/features/web/repository/file_system"
+	web_service "gopet/internal/features/web/service"
+	web_http_transport "gopet/internal/features/web/transport/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -76,6 +79,11 @@ func main() {
 	statisticsService := statistics_service.NewStatisticsService(statisticsRepository)
 	statisticsTransportHTTP := statistics_transport_http.NewStatisticsHTTPHandler(statisticsService)
 
+	logger.Debug("init statistics", zap.String("feature", "web"))
+	webRepository := web_fs_repository.NewWebRepository()
+	webService := web_service.NewWebService(webRepository)
+	webTransportHTTP := web_http_transport.NewWebHTTPHandler(webService)
+
 	logger.Debug("init of http srever")
 	httpServer := core_http_server.NewHTTPServer(
 		core_http_server.NewConfigMust(),
@@ -92,6 +100,7 @@ func main() {
 	apiVersionRouterV1.RegiseterRoutes(tasksTransportHTTP.Routes()...)
 	apiVersionRouterV1.RegiseterRoutes(statisticsTransportHTTP.Routes()...)
 	httpServer.RegisterAPIRouters(apiVersionRouterV1)
+	httpServer.RegisterRoutes(webTransportHTTP.Routes()...)
 	httpServer.RegisterSwagger()
 	if err := httpServer.Run(ctx); err != nil {
 		logger.Error("HTTP server run error", zap.Error(err))

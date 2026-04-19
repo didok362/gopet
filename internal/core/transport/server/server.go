@@ -39,6 +39,26 @@ func (h *HTTPServer) RegisterAPIRouters(routers ...*APIVersionRouter) {
 	}
 }
 
+func (s *HTTPServer) RegisterRoutes(routes ...Route) {
+	for _, route := range routes {
+		handler := route.Handler
+
+		if route.Method != "" {
+			handler = func(w http.ResponseWriter, r *http.Request) {
+				if r.Method != route.Method {
+					w.Header().Set("Allow", route.Method)
+					http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+					return
+				}
+
+				route.Handler(w, r)
+			}
+		}
+
+		s.mux.Handle(route.Path, handler)
+	}
+}
+
 func (s *HTTPServer) RegisterSwagger() {
 	s.mux.Handle(
 		"/swagger/",
